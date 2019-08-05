@@ -2,7 +2,10 @@ package org.neo4j.object.factory;
 
 import org.neo4j.ogm.config.Configuration;
 
-import javax.naming.*;
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.RefAddr;
+import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -12,40 +15,54 @@ import java.util.Hashtable;
  */
 public class Neo4jConfigurationObjectFactory implements ObjectFactory {
 
-    private static final String DRIVER_CLASS_NAME = "driverClassName";
     private static final String URI = "uri";
-    private static final String USERNAME = "username";
-    private static final String PASSWORD = "password";
     private static final String CONNECTION_POOL_SIZE = "connectionPoolSize";
-    private static final String CONNECTION_LIVENESS_CHECK_TIMEOUT = "connectionLivenessCheckTimeout";
     private static final String ENCRYPTION_LEVEL = "encryptionLevel";
     private static final String TRUST_STRATEGY = "trustStrategy";
     private static final String TRUST_CERT_FILE = "trustCertFile";
+    private static final String CONNECTION_LIVENESS_CHECK_TIMEOUT = "connectionLivenessCheckTimeout";
+    private static final String VERIFY_CONNECTION = "verifyConnection";
+    private static final String AUTO_INDEX = "autoIndex";
+    private static final String GENERATED_INDEXES_OUTPUT_DIR = "generatedIndexesOutputDir";
+    private static final String GENERATED_INDEXES_OUTPUT_FILENAME = "generatedIndexesOutputFilename";
+    private static final String NEO4J_CONF_LOCATION = "neo4jConfLocation";
+    private static final String NEO4J_HA_PROPERTIES_FILE = "neo4jHaPropertiesFile";
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
 
-    public Object getObjectInstance(Object obj, Name name2, Context nameCtx, Hashtable environment)
-            throws NamingException{
+    public Object getObjectInstance(Object obj, Name name2, Context nameCtx, Hashtable environment) {
 
-        Configuration configuration = new Configuration();
+        Configuration.Builder builder = new Configuration.Builder();
         Reference ref = (Reference) obj;
         Enumeration addrs = ref.getAll();
         String username = null, password = null;
         while (addrs.hasMoreElements()) {
             RefAddr addr = (RefAddr) addrs.nextElement();
             String name = addr.getType();
-            if (DRIVER_CLASS_NAME.equals(name)) {
-                configuration.driverConfiguration().setURI((String) addr.getContent());
-            } else if (URI.equals(name)) {
-                configuration.driverConfiguration().setURI((String) addr.getContent());
+            if (URI.equals(name)) {
+                builder = builder.uri((String) addr.getContent());
             } else if (CONNECTION_POOL_SIZE.equals(name)) {
-                configuration.driverConfiguration().setConnectionPoolSize(Integer.parseInt((String) addr.getContent()));
+                builder = builder.connectionPoolSize(Integer.parseInt((String) addr.getContent()));
             } else if (ENCRYPTION_LEVEL.equals(name)) {
-                configuration.driverConfiguration().setEncryptionLevel((String) addr.getContent());
+                builder = builder.encryptionLevel((String) addr.getContent());
             } else if (TRUST_STRATEGY.equals(name)) {
-                configuration.driverConfiguration().setTrustStrategy((String) addr.getContent());
+                builder = builder.trustStrategy((String) addr.getContent());
             } else if (TRUST_CERT_FILE.equals(name)) {
-                configuration.driverConfiguration().setTrustCertFile((String) addr.getContent());
+                builder = builder.trustCertFile((String) addr.getContent());
             } else if (CONNECTION_LIVENESS_CHECK_TIMEOUT.equals(name)) {
-                configuration.driverConfiguration().setConnectionLivenessCheckTimeout(Integer.parseInt((String) addr.getContent()));
+                builder = builder.connectionLivenessCheckTimeout(Integer.parseInt((String) addr.getContent()));
+            } else if (VERIFY_CONNECTION.equals(name)) {
+                builder = builder.verifyConnection(Boolean.parseBoolean((String) addr.getContent()));
+            } else if (AUTO_INDEX.equals(name)) {
+                builder = builder.autoIndex((String) addr.getContent());
+            } else if (GENERATED_INDEXES_OUTPUT_DIR.equals(name)) {
+                builder = builder.generatedIndexesOutputDir((String) addr.getContent());
+            } else if (GENERATED_INDEXES_OUTPUT_FILENAME.equals(name)) {
+                builder = builder.generatedIndexesOutputFilename((String) addr.getContent());
+            } else if (NEO4J_CONF_LOCATION.equals(name)) {
+                builder = builder.neo4jConfLocation((String) addr.getContent());
+            } else if (NEO4J_HA_PROPERTIES_FILE.equals(name)) {
+                builder = builder.neo4jHaPropertiesFile((String) addr.getContent());
             } else if (USERNAME.equals(name)) {
                 username = (String) addr.getContent();
             } else if (PASSWORD.equals(name)) {
@@ -53,14 +70,7 @@ public class Neo4jConfigurationObjectFactory implements ObjectFactory {
             }
         }
 
-        if (username == null) {
-            throw new NamingException("Username has to be defined");
-        }
-        if (password == null) {
-            throw new NamingException("Password has to be defined");
-        }
-
-        configuration.driverConfiguration().setCredentials(username, password);
-        return configuration;
+        builder.credentials(username, password);
+        return builder.build();
     }
 }
