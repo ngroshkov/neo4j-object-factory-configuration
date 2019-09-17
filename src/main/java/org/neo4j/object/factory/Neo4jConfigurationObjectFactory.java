@@ -8,6 +8,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
+ * JNDI Object Resource Factory for Neo4j configuration.
+ *
  * Created by Nikolay Groshkov on 04-Aug-2019.
  */
 public class Neo4jConfigurationObjectFactory implements ObjectFactory {
@@ -22,7 +24,7 @@ public class Neo4jConfigurationObjectFactory implements ObjectFactory {
     private static final String TRUST_STRATEGY = "trustStrategy";
     private static final String TRUST_CERT_FILE = "trustCertFile";
 
-    public Object getObjectInstance(Object obj, Name name2, Context nameCtx, Hashtable environment)
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment)
             throws NamingException{
 
         Configuration configuration = new Configuration();
@@ -31,24 +33,24 @@ public class Neo4jConfigurationObjectFactory implements ObjectFactory {
         String username = null, password = null;
         while (addrs.hasMoreElements()) {
             RefAddr addr = (RefAddr) addrs.nextElement();
-            String name = addr.getType();
-            if (DRIVER_CLASS_NAME.equals(name)) {
+            String type = addr.getType();
+            if (DRIVER_CLASS_NAME.equals(type)) {
                 configuration.driverConfiguration().setURI((String) addr.getContent());
-            } else if (URI.equals(name)) {
+            } else if (URI.equals(type)) {
                 configuration.driverConfiguration().setURI((String) addr.getContent());
-            } else if (CONNECTION_POOL_SIZE.equals(name)) {
+            } else if (CONNECTION_POOL_SIZE.equals(type)) {
                 configuration.driverConfiguration().setConnectionPoolSize(Integer.parseInt((String) addr.getContent()));
-            } else if (ENCRYPTION_LEVEL.equals(name)) {
+            } else if (ENCRYPTION_LEVEL.equals(type)) {
                 configuration.driverConfiguration().setEncryptionLevel((String) addr.getContent());
-            } else if (TRUST_STRATEGY.equals(name)) {
+            } else if (TRUST_STRATEGY.equals(type)) {
                 configuration.driverConfiguration().setTrustStrategy((String) addr.getContent());
-            } else if (TRUST_CERT_FILE.equals(name)) {
+            } else if (TRUST_CERT_FILE.equals(type)) {
                 configuration.driverConfiguration().setTrustCertFile((String) addr.getContent());
-            } else if (CONNECTION_LIVENESS_CHECK_TIMEOUT.equals(name)) {
+            } else if (CONNECTION_LIVENESS_CHECK_TIMEOUT.equals(type)) {
                 configuration.driverConfiguration().setConnectionLivenessCheckTimeout(Integer.parseInt((String) addr.getContent()));
-            } else if (USERNAME.equals(name)) {
+            } else if (USERNAME.equals(type)) {
                 username = (String) addr.getContent();
-            } else if (PASSWORD.equals(name)) {
+            } else if (PASSWORD.equals(type)) {
                 password = (String) addr.getContent();
             }
         }
